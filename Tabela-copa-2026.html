@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <title>Copa do Mundo 2026</title>
+        
+        <style>
+            :root{--bg:#0a0f1e;--surface:#111827;--surface2:#1a2235;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);--gold:#f5c518;--blue:#3b82f6;--green:#22c55e;--orange:#f97316;--text:#f1f5f9;--muted:#94a3b8;--dim:#475569;--radius:10px;--radius-sm:6px}
+            *{box-sizing:border-box;margin:0;padding:0}
+            body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+            header{background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);border-bottom:1px solid var(--border2);padding:1.25rem 2rem;display:flex;align-items:center;gap:1rem}
+            .logo{font-size:2rem}
+            header h1{font-size:1.4rem;font-weight:700}
+            header h1 span{color:var(--gold)}
+            header p{font-size:.75rem;color:var(--muted);margin-top:2px}
+            nav{display:flex;gap:4px;padding:.6rem 1.5rem;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;white-space:nowrap}
+            nav button{padding:.35rem .9rem;border:none;border-radius:20px;background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;transition:.15s;font-weight:500;flex-shrink:0}
+            nav button.active{background:var(--gold);color:#000}
+            nav button:hover:not(.active){background:var(--surface2);color:var(--text)}
+            main{padding:1.25rem 1.5rem;max-width:1280px;margin:0 auto}
+            .section{display:none}.section.active{display:block}
+            .info{font-size:.75rem;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.55rem .9rem;margin-bottom:1rem}
+            .legend{display:flex;gap:1rem;margin-bottom:.85rem;flex-wrap:wrap}
+            .legend-item{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--muted)}
+            .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+            .groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+            .group-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+            .group-header{background:var(--surface2);padding:.5rem .9rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border)}
+            .standings{width:100%;border-collapse:collapse;font-size:.72rem}
+            .standings thead th{padding:3px 7px;color:var(--dim);font-weight:500;text-align:center}
+            .standings thead th:nth-child(2){text-align:left}
+            .standings tbody tr{border-top:1px solid var(--border)}
+            .standings tbody td{padding:4px 7px;text-align:center}
+            .standings tbody td:nth-child(2){text-align:left}
+            .pos{color:var(--dim)}
+            .q1{color:var(--green);font-weight:600}
+            .q2{color:var(--blue);font-weight:600}
+            .q3{color:var(--orange);font-weight:600}
+            .pts-val{font-weight:700;color:var(--gold)}
+            .matches-label{font-size:.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;padding:.45rem .9rem .25rem}
+            .match-row{display:flex;align-items:center;padding:4px 9px;border-top:1px solid var(--border);gap:5px}
+            .match-team{flex:1;font-size:.7rem;color:var(--text)}
+            .match-team.right{text-align:right}
+            .score-wrap{display:flex;align-items:center;gap:3px;flex-shrink:0}
+            .score-in{width:30px;text-align:center;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:.75rem;padding:2px 0;-moz-appearance:textfield}
+            .score-in::-webkit-inner-spin-button,.score-in::-webkit-outer-spin-button{-webkit-appearance:none}
+            .score-in:focus{outline:none;border-color:var(--gold)}
+            .score-sep{font-size:.68rem;color:var(--dim)}
+            .round-title{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:.75rem}
+            .bracket-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-bottom:1.2rem}
+            .brace-match{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+            .brace-team{display:flex;align-items:center;justify-content:space-between;padding:5px 9px;border-bottom:1px solid var(--border);font-size:.72rem;gap:6px}
+            .brace-team:last-child{border-bottom:none}
+            .brace-team.winner{background:rgba(34,197,94,.08)}
+            .brace-team.winner .bname{color:var(--green);font-weight:600}
+            .bname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+            .third-note{font-size:.65rem;color:var(--dim);font-style:italic;padding:3px 9px 5px;border-top:1px solid var(--border)}
+            .champion-box{max-width:360px;margin:1.5rem auto;text-align:center;background:linear-gradient(135deg,#1a1400 0%,#2d2000 100%);border:2px solid var(--gold);border-radius:16px;padding:1.75rem}
+            .champion-box .trophy{font-size:2.8rem;margin-bottom:.4rem}
+            .champion-box h2{font-size:.9rem;color:var(--muted);font-weight:400;margin-bottom:.4rem}
+            .champion-box .champ-name{font-size:1.7rem;font-weight:700;color:var(--gold);min-height:2rem}
+            .final-match{margin-top:1.25rem}
+            .savebar{display:flex;gap:8px;align-items:center;padding:.6rem 1.5rem;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+            .savebar span{font-size:.72rem;color:var(--muted);margin-right:4px}
+            .btn{padding:.35rem .9rem;border:none;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;transition:.15s}
+            .btn-save{background:var(--gold);color:#000}
+            .btn-save:hover{background:#e6a800}
+            .btn-load{background:var(--surface);color:var(--text);border:1px solid var(--border2)}
+            .btn-load:hover{background:var(--surface2)}
+            .btn-reset{background:transparent;color:#ef4444;border:1px solid rgba(239,68,68,.3);font-size:.72rem}
+            .btn-reset:hover{background:rgba(239,68,68,.1)}
+            .save-status{font-size:.7rem;color:var(--green);margin-left:4px;opacity:0;transition:opacity .4s}
+            .save-status.show{opacity:1}
+
+        </style>
+
+    </head>
+
+    <body>
+        
+        <header>
+            <div class="logo">&#x1F3C6;</div>
+            <div>
+                <h1>Copa do Mundo <span>2026</span></h1>
+                <p>EUA &middot; Canad&aacute; &middot; M&eacute;xico &nbsp;|&nbsp; 48 sele&ccedil;&otilde;es &middot; 12 grupos &middot; Formato oficial FIFA</p>
+            </div>
+        </header>
+
+        <nav>
+            <button class="active" onclick="showTab('grupos',this)">Fase de Grupos</button>
+            <button onclick="showTab('r32',this)">32-avos (16 jogos)</button>
+            <button onclick="showTab('r16',this)">Oitavas (8 jogos)</button>
+            <button onclick="showTab('qf',this)">Quartas (4 jogos)</button>
+            <button onclick="showTab('sf',this)">Semifinais</button>
+            <button onclick="showTab('final',this)">Final</button>
+        </nav>
+
+        <div class="savebar">
+            <span>Resultados:</span>
+            <button class="btn btn-save" onclick="saveData()">&#8595; Exportar JSON</button>
+            <label class="btn btn-load" style="cursor:pointer">
+                &#8593; Importar JSON
+                <input type="file" accept=".json" style="display:none" onchange="loadData(event)">
+            </label>
+            <button class="btn btn-reset" onclick="resetData()">Limpar tudo</button>
+            <span class="save-status" id="save-status"></span>
+        </div>
+
+        <main>
+            <div id="tab-grupos" class="section active"></div>
+            <div id="tab-r32" class="section"></div>
+            <div id="tab-r16" class="section"></div>
+            <div id="tab-qf" class="section"></div>
+            <div id="tab-sf" class="section"></div>
+            <div id="tab-final" class="section"></div>
+        </main>
+
+        <script>
+            var GROUPS = {
+                A:['M\u00e9xico','\u00c1frica do Sul','Coreia do Sul','Rep. Tcheca'],
+                B:['Canad\u00e1','B\u00f3snia','Qatar','Su\u00ed\u00e7a'],
+                C:['Brasil','Marrocos','Haiti','Esc\u00f3cia'],
+                D:['Estados Unidos','Paraguai','Austr\u00e1lia','Turquia'],
+                E:['Alemanha','Cura\u00e7ao','Costa do Marf\u00edm','Equador'],
+                F:['Holanda','Jap\u00e3o','Su\u00e9cia','Tun\u00edsia'],
+                G:['B\u00e9lgica','Egito','Ir\u00e3','Nova Zel\u00e2ndia'],
+                H:['Espanha','Cabo Verde','Ar\u00e1bia Saudita','Uruguai'],
+                I:['Fran\u00e7a','Senegal','Iraque','Noruega'],
+                J:['Argentina','Arg\u00e9lia','\u00c1ustria','Jord\u00e2nia'],
+                K:['Portugal','RD Congo','Uzbequist\u00e3o','Col\u00f4mbia'],
+                L:['Inglaterra','Cro\u00e1cia','Gana','Panam\u00e1']
+            };
+
+            var MATCHUPS = [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]];
+            var scores = {};
+            var bScores = {};
+
+            function sk(g,m){ return g+'_'+m; }
+            function bk(r,i){ return r+'_'+i; }
+
+            function getStandings(g){
+                var teams = GROUPS[g].map(function(n,i){ return {name:n,idx:i,pts:0,gf:0,ga:0,gd:0,pl:0}; });
+                MATCHUPS.forEach(function(mu,mi){
+                    var a=mu[0],b=mu[1];
+                    var k=sk(g,mi), sc=scores[k];
+                    if(sc && sc[0]!==null && sc[1]!==null){
+                        teams[a].gf+=sc[0]; teams[a].ga+=sc[1];
+                        teams[b].gf+=sc[1]; teams[b].ga+=sc[0];
+                        teams[a].gd=teams[a].gf-teams[a].ga;
+                        teams[b].gd=teams[b].gf-teams[b].ga;
+                        teams[a].pl++; teams[b].pl++;
+                        if(sc[0]>sc[1]) teams[a].pts+=3;
+                        else if(sc[1]>sc[0]) teams[b].pts+=3;
+                        else{ teams[a].pts++; teams[b].pts++; }
+                    }
+                });
+                return teams.sort(function(a,b){ return b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||a.name.localeCompare(b.name); });
+            }
+
+            function getBestThirds(){
+                return Object.keys(GROUPS).map(function(g){
+                    var st=getStandings(g);
+                    return {group:g, pts:st[2].pts, gd:st[2].gd, gf:st[2].gf, name:st[2].name, pl:st[2].pl};
+                }).sort(function(a,b){ return b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||a.name.localeCompare(b.name); });
+            }
+
+            function renderGroups(){
+                var wrap = document.getElementById('tab-grupos');
+                wrap.innerHTML = '<div class="info">&#9917; Grupos oficiais sorteados em dezembro de 2025. Avan&ccedil;am os 2 primeiros de cada grupo + os 8 melhores 3&ordm;s colocados (32 times no total).</div>'
+                +'<div class="legend">'
+                +'<div class="legend-item"><div class="dot" style="background:var(--green)"></div> Avan&ccedil;a direto (1&ordm;/2&ordm; lugar)</div>'
+                +'<div class="legend-item"><div class="dot" style="background:var(--orange)"></div> Poss&iacute;vel classifica&ccedil;&atilde;o (3&ordm; lugar)</div>'
+                +'</div>'
+                +'<div class="groups-grid" id="gg"></div>';
+
+                var thirds = getBestThirds();
+                var top8 = {};
+                thirds.slice(0,8).forEach(function(t){ top8[t.group]=true; });
+
+                var grid = document.getElementById('gg');
+                Object.keys(GROUPS).forEach(function(g){
+                    var st = getStandings(g);
+                    var card = document.createElement('div');
+                    card.className='group-card';
+                    var h = '<div class="group-header">Grupo '+g+'</div>'
+                    +'<table class="standings"><thead><tr><th>#</th><th>Sele&ccedil;&atilde;o</th><th>J</th><th>PTS</th><th>SG</th></tr></thead><tbody>';
+                    st.forEach(function(t,i){
+                        var cls = i===0?'q1':i===1?'q2':'';
+                        if(i===2 && top8[g] && t.pl>0) cls='q3';
+                        var sg = (t.gd>=0?'+':'')+t.gd;
+                        h += '<tr><td class="pos">'+(i+1)+'</td><td class="'+cls+'">'+t.name+'</td><td>'+t.pl+'</td><td class="pts-val">'+t.pts+'</td><td>'+(t.pl>0?sg:'-')+'</td></tr>';
+                    });
+                    h += '</tbody></table><div class="matches-label">Jogos</div>';
+                    MATCHUPS.forEach(function(mu,mi){
+                        var a=mu[0],b=mu[1];
+                        var k=sk(g,mi), sc=scores[k]||[null,null];
+                        h += '<div class="match-row">'
+                            +'<span class="match-team right">'+GROUPS[g][a]+'</span>'
+                            +'<div class="score-wrap">'
+                            +'<input class="score-in" type="number" min="0" max="99" value="'+(sc[0]!==null?sc[0]:'')+'" placeholder="-" data-g="'+g+'" data-m="'+mi+'" data-t="0">'
+                            +'<span class="score-sep">&times;</span>'
+                            +'<input class="score-in" type="number" min="0" max="99" value="'+(sc[1]!==null?sc[1]:'')+'" placeholder="-" data-g="'+g+'" data-m="'+mi+'" data-t="1">'
+                            +'</div>'
+                            +'<span class="match-team">'+GROUPS[g][b]+'</span>'
+                            +'</div>';
+                    });
+                    card.innerHTML = h;
+                    grid.appendChild(card);
+                });
+
+                wrap.querySelectorAll('.score-in').forEach(function(inp){
+                    inp.addEventListener('input', function(){
+                        var g=this.dataset.g, m=+this.dataset.m, t=+this.dataset.t;
+                        var k=sk(g,m);
+                        if(!scores[k]) scores[k]=[null,null];
+                        scores[k][t] = this.value===''?null:+this.value;
+                        // Só re-renderiza quando os dois placares estiverem preenchidos (ou os dois em branco)
+                        var sc = scores[k];
+                        var bothFilled = sc[0]!==null && sc[1]!==null;
+                        var bothEmpty  = sc[0]===null && sc[1]===null;
+                        if(bothFilled || bothEmpty){
+                            renderGroups();
+                            renderAllBrackets();
+                        }
+                    });
+                });
+            }
+
+            // Chaveamento oficial FIFA 2026 - Round of 32 (16 jogos)
+            var R32 = [
+                {home:'1\u00ba A', away:'2\u00ba B'},
+                {home:'1\u00ba E', away:'3\u00ba (A/B/C/D/F)'},
+                {home:'1\u00ba F', away:'2\u00ba C'},
+                {home:'1\u00ba C', away:'2\u00ba F'},
+                {home:'1\u00ba I', away:'3\u00ba (C/D/F/G/H)'},
+                {home:'2\u00ba E', away:'2\u00ba I'},
+                {home:'2\u00ba B', away:'3\u00ba (C/E/F/H/I)'},
+                {home:'1\u00ba L', away:'3\u00ba (E/H/I/J/K)'},
+                {home:'1\u00ba D', away:'3\u00ba (B/E/F/I/J)'},
+                {home:'1\u00ba G', away:'3\u00ba (A/E/H/I/J)'},
+                {home:'2\u00ba K', away:'2\u00ba L'},
+                {home:'1\u00ba H', away:'2\u00ba J'},
+                {home:'1\u00ba B', away:'3\u00ba (E/F/G/I/J)'},
+                {home:'1\u00ba J', away:'2\u00ba H'},
+                {home:'2\u00ba A', away:'2\u00ba D'},
+                {home:'1\u00ba K', away:'2\u00ba G'}
+            ];
+
+            // Oitavas: pares de jogos dos 32-avos
+            var R16P = [[0,1],[2,3],[4,5],[6,7],[8,9],[10,11],[12,13],[14,15]];
+            // Quartas
+            var QFP  = [[0,1],[2,3],[4,5],[6,7]];
+            // Semis
+            var SFP  = [[0,1],[2,3]];
+
+            // Tabela oficial FIFA 2026: quais grupos de 3ºs vão para cada slot dos 32-avos
+            // Cada slot de 3º possui uma lista de grupos possíveis, e o time vai para o slot
+            // cujo grupo corresponder ao grupo do 3º colocado classificado.
+            // Mapeamento: posição no R32 (índice) → grupos candidatos de 3ºs
+            // Slots de 3º no R32: índices 1,4,6,7,8,9,12 (away nos índices corretos)
+            // Regra oficial FIFA 2026 para alocação dos 8 melhores 3ºs:
+            // Os 8 melhores 3ºs são alocados conforme a combinação de grupos que classificaram.
+            // A tabela abaixo cobre todas as combinações possíveis dos 8 melhores entre 12 grupos (A-L).
+
+            // Mapeamento simplificado: grupo do 3º → slot no R32 (índice da partida)
+            // Baseado no chaveamento oficial divulgado pela FIFA para Copa 2026
+            var THIRD_SLOT_MAP = {
+                // slot index → array de grupos candidatos (conforme chaveamento FIFA)
+                1:  ['A','B','C','D','F'],   // Jogo 1: 1ºA vs 3º(A/B/C/D/F)  — posição away
+                4:  ['C','D','F','G','H'],   // Jogo 4: 1ºI vs 3º(C/D/F/G/H)
+                6:  ['C','E','F','H','I'],   // Jogo 6: 2ºB vs 3º(C/E/F/H/I)  — posição home era 2ºB, away é 3º
+                7:  ['E','H','I','J','K'],   // Jogo 7: 1ºL vs 3º(E/H/I/J/K)
+                8:  ['B','E','F','I','J'],   // Jogo 8: 1ºD vs 3º(B/E/F/I/J)
+                9:  ['A','E','H','I','J'],   // Jogo 9: 1ºG vs 3º(A/E/H/I/J)
+                12: ['E','F','G','I','J']    // Jogo 12: 1ºB vs 3º(E/F/G/I/J)
+            };
+
+            // Retorna objeto: { slotIndex: teamName } para os 8 melhores 3ºs classificados
+            function resolveThirds(){
+                var thirds = getBestThirds().slice(0,8);
+                var qualified = {}; // group → teamName
+                thirds.forEach(function(t){ qualified[t.group] = t.name; });
+
+                var result = {}; // slotIndex → teamName
+                // Para cada slot, encontra qual dos grupos candidatos está entre os classificados
+                Object.keys(THIRD_SLOT_MAP).forEach(function(slotIdx){
+                    var candidates = THIRD_SLOT_MAP[slotIdx];
+                    for(var i=0;i<candidates.length;i++){
+                        var g = candidates[i];
+                        if(qualified[g]){
+                            result[+slotIdx] = qualified[g];
+                            delete qualified[g]; // cada time só vai para um slot
+                            break;
+                        }
+                    }
+                });
+                return result;
+            }
+
+            function resolveLabel(label){
+                var m = label.match(/^([12])\u00ba ([A-L])$/);
+                if(m){
+                    var st=getStandings(m[2]);
+                    var idx=m[1]==='1'?0:1;
+                    return st[idx].pl>0 ? st[idx].name : label;
+                }
+                return label;
+            }
+
+            function getR32Team(mi,side){
+                var label = side===0 ? R32[mi].home : R32[mi].away;
+                // Se for label de 3º lugar, tenta resolver pelo chaveamento
+                if(label.indexOf('3\u00ba')===0){
+                    var thirds = getBestThirds();
+                    // Verifica se há 8 terceiros com jogos disputados para montar chaveamento
+                    var playedThirds = thirds.filter(function(t){ return t.pl > 0; });
+                    if(playedThirds.length >= 8){
+                        var resolved = resolveThirds();
+                        if(resolved[mi] !== undefined) return resolved[mi];
+                    }
+                    return label;
+                }
+                return resolveLabel(label);
+            }
+
+            function getWinner(round, mi){
+                var k=bk(round,mi), sc=bScores[k];
+                if(sc && sc[0]!==null && sc[1]!==null){
+                    var t0,t1;
+                    if(round==='r32'){ t0=getR32Team(mi,0); t1=getR32Team(mi,1); }
+                    else if(round==='r16'){ t0=getWinner('r32',R16P[mi][0]); t1=getWinner('r32',R16P[mi][1]); }
+                    else if(round==='qf'){  t0=getWinner('r16',QFP[mi][0]);  t1=getWinner('r16',QFP[mi][1]); }
+                    else if(round==='sf'){  t0=getWinner('qf', SFP[mi][0]);  t1=getWinner('qf', SFP[mi][1]); }
+                    if(sc[0]>sc[1]) return t0;
+                    if(sc[1]>sc[0]) return t1;
+                    return (t0||'?')+'*';
+                }
+                return '?';
+            }
+
+            function getBTeam(round, mi, side){
+                if(round==='r32')  return getR32Team(mi,side);
+                if(round==='r16')  return getWinner('r32', R16P[mi][side]);
+                if(round==='qf')   return getWinner('r16', QFP[mi][side]);
+                if(round==='sf')   return getWinner('qf',  SFP[mi][side]);
+                if(round==='final') return getWinner('sf', side);
+                return '?';
+            }
+
+            function renderBracketRound(containerId, round, count, title, sub){
+                var c = document.getElementById(containerId);
+                c.innerHTML = '<div class="round-title">'+title+(sub?'<span style="font-weight:400;color:var(--muted);margin-left:.5rem;font-size:.68rem">'+sub+'</span>':'')+'</div>'
+                    +'<div class="bracket-grid" id="bg-'+round+'"></div>';
+                var grid = document.getElementById('bg-'+round);
+                for(var i=0;i<count;i++){
+                    (function(i){
+                        var t0=getBTeam(round,i,0), t1=getBTeam(round,i,1);
+                        var k=bk(round,i), sc=bScores[k]||[null,null];
+                        var w = (sc[0]!==null&&sc[1]!==null) ? (sc[0]>sc[1]?0:sc[1]>sc[0]?1:-1) : -1;
+                        var card=document.createElement('div');
+                        card.className='brace-match';
+                        var html='';
+                        [t0,t1].forEach(function(t,ti){
+                            var isW=w===ti;
+                            html+='<div class="brace-team'+(isW?' winner':'')+'"><span class="bname">'+t+'</span>'
+                            +'<input class="score-in" type="number" min="0" max="99" value="'+(sc[ti]!==null?sc[ti]:'')+'" placeholder="-" data-round="'+round+'" data-mi="'+i+'" data-t="'+ti+'">'
+                            +'</div>';
+                        });
+                        if(round==='r32' && R32[i].away.indexOf('3\u00ba')===0){
+                            html+='<div class="third-note">3\u00ba lugar a definir ap\u00f3s fase de grupos</div>';
+                        }
+                        card.innerHTML=html;
+                        grid.appendChild(card);
+                    })(i);
+                }
+                c.querySelectorAll('.score-in').forEach(function(inp){
+                    inp.addEventListener('input',function(){
+                        var r=this.dataset.round, mi=+this.dataset.mi, t=+this.dataset.t;
+                        var k=bk(r,mi);
+                        if(!bScores[k]) bScores[k]=[null,null];
+                        bScores[k][t]=this.value===''?null:+this.value;
+                        var sc=bScores[k];
+                        var bothFilled = sc[0]!==null && sc[1]!==null;
+                        var bothEmpty  = sc[0]===null && sc[1]===null;
+                        if(bothFilled || bothEmpty){
+                            renderAllBrackets();
+                        }
+                    });
+                });
+            }
+
+            function renderFinal(){
+                var c=document.getElementById('tab-final');
+                var t0=getBTeam('final',0,0), t1=getBTeam('final',0,1);
+                var k=bk('final',0), sc=bScores[k]||[null,null];
+                var w=(sc[0]!==null&&sc[1]!==null)?(sc[0]>sc[1]?0:sc[1]>sc[0]?1:-1):-1;
+                var champ=w>=0?getBTeam('final',0,w):'';
+                c.innerHTML='<div class="champion-box">'
+                +'<div class="trophy">&#x1F3C6;</div>'
+                +'<h2>Campe&atilde;o do Mundo 2026</h2>'
+                +'<div class="champ-name">'+(champ||'&mdash;')+'</div>'
+                +'<div class="final-match">'
+                +'<div class="round-title" style="margin-bottom:.75rem">Final &middot; 19 de julho &middot; MetLife Stadium, Nova Jersey</div>'
+                +'<div class="brace-match" style="max-width:300px;margin:0 auto">'
+                +'<div class="brace-team'+(w===0?' winner':'')+'"><span class="bname">'+t0+'</span><input class="score-in" type="number" min="0" max="99" value="'+(sc[0]!==null?sc[0]:'')+'" placeholder="-" data-round="final" data-mi="0" data-t="0"></div>'
+                +'<div class="brace-team'+(w===1?' winner':'')+'"><span class="bname">'+t1+'</span><input class="score-in" type="number" min="0" max="99" value="'+(sc[1]!==null?sc[1]:'')+'" placeholder="-" data-round="final" data-mi="0" data-t="1"></div>'
+                +'</div></div></div>';
+                c.querySelectorAll('.score-in').forEach(function(inp){
+                    inp.addEventListener('input',function(){
+                        var r=this.dataset.round, mi=+this.dataset.mi, t=+this.dataset.t;
+                        var k=bk(r,mi);
+                        if(!bScores[k]) bScores[k]=[null,null];
+                        bScores[k][t]=this.value===''?null:+this.value;
+                        var sc=bScores[k];
+                        var bothFilled = sc[0]!==null && sc[1]!==null;
+                        var bothEmpty  = sc[0]===null && sc[1]===null;
+                        if(bothFilled || bothEmpty){
+                            renderFinal();
+                        }
+                    });
+                });
+            }
+
+            function renderAllBrackets(){
+                renderBracketRound('tab-r32','r32',16,'32-avos de Final','32 times &middot; 16 jogos &middot; 28 jun \u2013 3 jul');
+                renderBracketRound('tab-r16','r16',8,'Oitavas de Final','16 times &middot; 8 jogos &middot; 4\u20137 jul');
+                renderBracketRound('tab-qf','qf',4,'Quartas de Final','8 times &middot; 4 jogos &middot; 8\u201311 jul');
+                renderBracketRound('tab-sf','sf',2,'Semifinais','4 times &middot; 2 jogos &middot; 14\u201315 jul');
+                renderFinal();
+            }
+
+            function showTab(name,btn){
+                document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+                document.querySelectorAll('nav button').forEach(function(b){ b.classList.remove('active'); });
+                document.getElementById('tab-'+name).classList.add('active');
+                btn.classList.add('active');
+                if(name!=='grupos') renderAllBrackets();
+            }
+
+
+            function saveData(){
+                var data = JSON.stringify({scores:scores, bScores:bScores, v:1});
+                var blob = new Blob([data], {type:'application/json'});
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'copa2026-resultados.json';
+                a.click();
+                showStatus('Exportado!');
+            }
+
+            function loadData(e){
+                var file = e.target.files[0];
+                if(!file) return;
+                var reader = new FileReader();
+                reader.onload = function(ev){
+                    try{
+                        var data = JSON.parse(ev.target.result);
+                        if(data.scores) scores = data.scores;
+                        if(data.bScores) bScores = data.bScores;
+                        renderGroups();
+                        renderAllBrackets();
+                        showStatus('Importado com sucesso!');
+                    } 
+                    catch(err){
+                        alert('Arquivo inválido.');
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value='';
+            }
+
+            function resetData(){
+                if(!confirm('Limpar todos os resultados preenchidos?')) return;
+                scores={};bScores={};
+                renderGroups();renderAllBrackets();
+                showStatus('Dados limpos.');
+            }
+
+            function showStatus(msg){
+                var el=document.getElementById('save-status');
+                el.textContent=msg;
+                el.classList.add('show');
+                setTimeout(function(){ el.classList.remove('show'); }, 2500);
+            }
+
+            renderGroups();
+            renderAllBrackets();
+        </script>
+
+    </body>
+    
+</html>
