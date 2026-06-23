@@ -256,47 +256,64 @@
             // Semis
             var SFP  = [[0,1],[2,3]];
 
-            // Tabela oficial FIFA 2026: quais grupos de 3ºs vão para cada slot dos 32-avos
-            // Cada slot de 3º possui uma lista de grupos possíveis, e o time vai para o slot
-            // cujo grupo corresponder ao grupo do 3º colocado classificado.
-            // Mapeamento: posição no R32 (índice) → grupos candidatos de 3ºs
-            // Slots de 3º no R32: índices 1,4,6,7,8,9,12 (away nos índices corretos)
-            // Regra oficial FIFA 2026 para alocação dos 8 melhores 3ºs:
-            // Os 8 melhores 3ºs são alocados conforme a combinação de grupos que classificaram.
-            // A tabela abaixo cobre todas as combinações possíveis dos 8 melhores entre 12 grupos (A-L).
-
-            // Mapeamento simplificado: grupo do 3º → slot no R32 (índice da partida)
-            // Baseado no chaveamento oficial divulgado pela FIFA para Copa 2026
-            var THIRD_SLOT_MAP = {
-                // slot index → array de grupos candidatos (conforme chaveamento FIFA)
-                1:  ['A','B','C','D','F'],   // Jogo 1: 1ºA vs 3º(A/B/C/D/F)  — posição away
-                4:  ['C','D','F','G','H'],   // Jogo 4: 1ºI vs 3º(C/D/F/G/H)
-                6:  ['C','E','F','H','I'],   // Jogo 6: 2ºB vs 3º(C/E/F/H/I)  — posição home era 2ºB, away é 3º
-                7:  ['E','H','I','J','K'],   // Jogo 7: 1ºL vs 3º(E/H/I/J/K)
-                8:  ['B','E','F','I','J'],   // Jogo 8: 1ºD vs 3º(B/E/F/I/J)
-                9:  ['A','E','H','I','J'],   // Jogo 9: 1ºG vs 3º(A/E/H/I/J)
-                12: ['E','F','G','I','J']    // Jogo 12: 1ºB vs 3º(E/F/G/I/J)
-            };
-
             // Retorna objeto: { slotIndex: teamName } para os 8 melhores 3ºs classificados
+            // Usa algoritmo de atribuição sem colisão: resolve slots mais restritos primeiro.
             function resolveThirds(){
                 var thirds = getBestThirds().slice(0,8);
                 var qualified = {}; // group → teamName
                 thirds.forEach(function(t){ qualified[t.group] = t.name; });
+                // Para cada slot, encontra o melhor candidato disponível
+                // SEM deletar antecipadamente, usando "já usados" para evitar duplicatas.
+                var slotCandidates = {
+                    1:  ['A','B','C','D','F'],
+                    4:  ['C','D','F','G','H'],
+                    6:  ['C','E','F','H','I'],
+                    7:  ['E','H','I','J','K'],
+                    8:  ['B','E','F','I','J'],
+                    9:  ['A','E','H','I','J'],
+                    12: ['E','F','G','I','J']
+                };
 
-                var result = {}; // slotIndex → teamName
-                // Para cada slot, encontra qual dos grupos candidatos está entre os classificados
-                Object.keys(THIRD_SLOT_MAP).forEach(function(slotIdx){
-                    var candidates = THIRD_SLOT_MAP[slotIdx];
-                    for(var i=0;i<candidates.length;i++){
-                        var g = candidates[i];
-                        if(qualified[g]){
-                            result[+slotIdx] = qualified[g];
-                            delete qualified[g]; // cada time só vai para um slot
-                            break;
+                // Algoritmo de atribuição sem colisão:
+                // Ordena slots pelo número de candidatos qualificados (menos candidatos = mais restrito = resolve primeiro)
+                var slots = [1,4,6,7,8,9,12];
+                var used = {};
+                var result = {};
+
+                // Itera até resolver todos os slots (máx. 7 iterações)
+                var maxIter = 20;
+                while(maxIter-- > 0){
+                    var progress = false;
+                    // Encontra slot com apenas 1 candidato disponível e resolve primeiro
+                    slots.forEach(function(s){
+                        if(result[s] !== undefined) return;
+                        var avail = slotCandidates[s].filter(function(g){ return qualified[g] && !used[g]; });
+                        if(avail.length === 1){
+                            result[s] = qualified[avail[0]];
+                            used[avail[0]] = true;
+                            progress = true;
                         }
+                    });
+                    if(!progress){
+                        // Resolve o slot com menos candidatos disponíveis
+                        var bestSlot = null, bestCount = 999;
+                        slots.forEach(function(s){
+                            if(result[s] !== undefined) return;
+                            var avail = slotCandidates[s].filter(function(g){ return qualified[g] && !used[g]; });
+                            if(avail.length > 0 && avail.length < bestCount){
+                                bestCount = avail.length;
+                                bestSlot = s;
+                            }
+                        });
+                        if(bestSlot === null) break;
+                        var avail = slotCandidates[bestSlot].filter(function(g){ return qualified[g] && !used[g]; });
+                        result[bestSlot] = qualified[avail[0]];
+                        used[avail[0]] = true;
                     }
-                });
+                    // Verifica se todos resolvidos
+                    var done = slots.every(function(s){ return result[s] !== undefined; });
+                    if(done) break;
+                }
                 return result;
             }
 
